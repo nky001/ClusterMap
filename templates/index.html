@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Segmentation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            margin-top: 20px;
+            font-size: 2.8rem;
+        }
+        
+        form {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        input[type="file"], input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button, #loading-btn {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #loading-btn {
+            display: none;
+            position: relative;
+            pointer-events: none;
+        }
+
+        #loading-btn:before {
+            content: '';
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3498db;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -12px;
+            margin-top: -12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #feature-mapping-section, #results, #single-input-section {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: none;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        ul li {
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-option-buttons {
+            display: flex;
+            justify-content: space-between;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        #stats {
+            background-color: #f9f9f9; /* Light background */
+            border: 1px solid #ddd; /* Subtle border */
+            border-radius: 8px; /* Rounded corners */
+            padding: 20px; /* Padding for space */
+            margin: 20px 0; /* Space between sections */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+        }
+        
+        h2 {
+            color: #333; /* Dark color for headings */
+            font-size: 24px; /* Size of the main heading */
+            margin-bottom: 15px; /* Space below heading */
+        }
+        
+        .cluster {
+            border: 1px solid #007BFF; /* Border for individual cluster */
+            border-radius: 5px; /* Slightly rounded corners */
+            padding: 15px; /* Padding inside cluster */
+            margin-bottom: 15px; /* Space below each cluster */
+            background-color: #ffffff; /* White background for contrast */
+        }
+        
+        h3 {
+            color: #007BFF; /* Blue color for cluster headings */
+            font-size: 20px; /* Size of cluster heading */
+            margin-bottom: 10px; /* Space below cluster heading */
+        }
+        
+        p {
+            font-size: 16px; /* Font size for paragraphs */
+            color: #555; /* Gray color for text */
+        }
+        
+        strong {
+            color: #333; /* Dark color for strong text */
+        }
+        
+        ul {
+            list-style-type: none; /* Remove bullet points */
+            padding-left: 0; /* Remove default padding */
+        }
+        
+        ul li {
+            padding: 5px 0; /* Space between list items */
+        }
+        
+        span {
+            font-weight: bold; /* Bold text for values */
+        }
+        
+        .form-option-buttons button {
+            width: 48%;
+            padding: 12px;
+        }
+        .cluster-info {
+            margin: 40px auto;
+            max-width: 800px;
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .cluster-info h3 {
+            font-size: 1.6rem;
+            color: #4CAF50;
+        }
+
+        .cluster-info p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+        #chart-image {
+            display: none;
+            max-width: 100%;
+            margin: 20px 0;
+        }
+        #feature-mapping-section {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: none; /* Initially hidden until data is available */
+            transition: all 0.3s ease-in-out;
+        }
+        
+        #feature-mapping-section h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        #mapping-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        #mapping-options label {
+            font-size: 1.2rem;
+            color: #555;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        #mapping-options select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+        
+        #mapping-options select:focus {
+            border-color: #4CAF50;
+            outline: none;
+            background-color: #fff;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+        
+        #mapping-options br {
+            margin-bottom: 10px;
+        }
+        
+        #mapping-form button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #mapping-form button:hover {
+            background-color: #45a049;
+        }
+        #chart-container {
+            padding: 12px;
+            width: 80%; /* Adjust width as needed */
+            margin: auto;
+            text-align: center; /* Center the chart */
+        }
+        
+        #clusterChart {
+            padding: 12px;
+            max-width: 100%; /* Responsive design */
+            height: auto; /* Maintain aspect ratio */
+            border: 1px solid #ccc; /* Optional: Add a border */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+        }
+        
+        
+        @media screen and (max-width: 600px) {
+            #feature-mapping-section {
+                max-width: 100%;
+                padding: 15px;
+            }
+        
+            #mapping-form {
+                gap: 10px;
+            }
+        
+            #mapping-form button {
+                font-size: 1.1rem;
+                padding: 10px;
+            }
+        }
+        
+        @media screen and (max-width: 600px) {
+            .form-option-buttons {
+                flex-direction: column;
+            }
+            .form-option-buttons button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    
+    </style>
+</head>
+<body>
+
+    <h1>Customer Segmentation</h1>
+
+    <form id="upload-form" method="POST" enctype="multipart/form-data">
+        <label for="file">Upload CSV/Excel File:</label>
+        <input type="file" id="file-upload" name="file" accept=".csv, .xlsx">
+        <button type="submit" id="upload-btn">Upload & Get Features</button>
+        <div id="loading-btn">Processing...</div>
+    </form>
+
+    <div class="form-option-buttons">
+        <button id="upload-option">Upload File</button>
+        <button id="single-input-option">Enter Single Sample</button>
+    </div>
+
+    <div id="single-input-section">
+        <h2>Enter Sample Data for Prediction:</h2>
+        <form id="single-input-form">
+            <div id="single-input-fields"></div>
+            <button type="submit">Predict for Single Sample</button>
+        </form>
+    </div>
+
+    <div id="feature-mapping-section">
+        <h2>Map CSV Columns to Model Features:</h2>
+        <form id="mapping-form">
+            <div id="mapping-options"></div> 
+            <button type="submit">Make Prediction</button>
+        </form>
+    </div>
+    
+    
+    <div id="results">
+        <h2>Predictions:</h2>
+        <ul id="prediction-list"></ul>
+    </div>
+    
+    <div id="chart-container" style="display: none;">
+        <h3>Number of Customers per Cluster</h3>
+        <img id="clusterChart" src="" alt="Customer Segmentation Chart" />
+    
+    </div>
+
+
+    <div class="cluster-info">
+        <h2>Understanding Your Customer Segments</h2>
+        <p>Our model divides your customers into distinct groups, or clusters, based on their purchasing behaviors. Here's a breakdown of what each cluster typically represents:</p>
+
+        <h3>Cluster 1: "Value Seekers"</h3>
+        <p>These customers buy frequently but spend less on individual purchases. They are attracted to deals and discounts, and offering special promotions can keep them engaged.</p>
+
+        <h3>Cluster 2: "Premium Shoppers"</h3>
+        <p>Customers in this group don't buy often, but when they do, they prefer high-end products. Personalized experiences and high-quality offerings resonate with these customers.</p>
+
+        <h3>Cluster 3: "Occasional Buyers"</h3>
+        <p>This segment consists of customers who make irregular, larger purchases. Event-based marketing or special one-time offers might catch their attention.</p>
+
+        <h3>Cluster 4: "Loyal Customers"</h3>
+        <p>These are repeat customers who value the brand and make consistent purchases. Offering them loyalty rewards or exclusive access to new products can strengthen their relationship with your business.</p>
+    </div>
+    <script>
+        const uploadForm = document.getElementById('upload-form');
+        const fileUploadInput = document.getElementById('file-upload');
+        const featureMappingSection = document.getElementById('feature-mapping-section');
+        const mappingOptionsDiv = document.getElementById('mapping-options');
+        const mappingForm = document.getElementById('mapping-form');
+        const resultsDiv = document.getElementById('results');
+        const predictionList = document.getElementById('prediction-list');
+        const singleInputOption = document.getElementById('single-input-option');
+        const uploadOption = document.getElementById('upload-option');
+        const singleInputSection = document.getElementById('single-input-section');
+        const singleInputForm = document.getElementById('single-input-form');
+        const singleInputFields = document.getElementById('single-input-fields');
+        const statsDiv = document.getElementById('stats');
+        const chartImage = document.getElementById('chart-image');
+        const model_features = ['PurchaseFrequency', 'TotalQuantity', 'TotalSpend', 'Recency'];
+        const modelFeatures = JSON.parse('{{ model_features | tojson }}'); 
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(uploadForm);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mappingOptionsDiv.innerHTML = ''; 
+                    model_features.forEach(modelFeature => {
+                        const select = document.createElement('select');
+                        select.name = modelFeature;
+                        select.required = true;
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.text = `Select for ${modelFeature}`;
+                        option.disabled = true; 
+                        option.selected = true;
+                        select.appendChild(option);
+
+                        data.columns.forEach(col => {
+                            const option = document.createElement('option');
+                            option.value = col;
+                            option.text = col;
+                            select.appendChild(option);
+                        });
+
+                        const label = document.createElement('label');
+                        label.textContent = `${modelFeature}: `;
+                        label.appendChild(select);
+                        mappingOptionsDiv.appendChild(label);
+                        mappingOptionsDiv.appendChild(document.createElement('br')); // Add line break
+                    });
+                    featureMappingSection.style.display = 'block';
+                } else {
+                    console.error('Upload error:', data.error);
+                    alert(data.error);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('An error occurred during upload.');
+            }
+        });
+
+        mappingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+        
+            const formData = new FormData(mappingForm);
+            const selectedFeatures = [];
+        
+            modelFeatures.forEach(feature => {
+                const selectedFeature = formData.get(feature);
+                if (selectedFeature) {
+                    selectedFeatures.push(selectedFeature);
+                }
+            });
+        
+            formData.append('selected-features', JSON.stringify(selectedFeatures));
+            formData.append('file', fileUploadInput.files[0]);
+        
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+        
+                const data = await response.json();
+
+                
+                const clusterChartElement = document.getElementById('clusterChart');
+                if (clusterChartElement) {
+                    clusterChartElement.src = `data:image/png;base64, ${data.chart}`;
+                } else {
+                    console.error('Element with ID clusterChart not found.');
+                }
+                document.getElementById('chart-container').style.display = 'block';
+        
+                if (response.ok) {
+                    predictionList.innerHTML = '';
+                    data.predictions.forEach((prediction, index) => {
+                        const li = document.createElement('li');
+                        li.textContent = `CustomerID: ${data.customer_ids[index]}, Cluster: ${prediction}`;
+                        predictionList.appendChild(li);
+                    });
+                    resultsDiv.style.display = 'block';
+        
+
+                } else {
+                    console.error('Prediction error:', data.error);
+                    alert(data.error);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('An error occurred during prediction.');
+            }
+        });
+
+        singleInputOption.addEventListener('click', () => {
+            singleInputSection.style.display = 'block';
+            uploadForm.style.display = 'none';
+            featureMappingSection.style.display = 'none'; 
+            resultsDiv.style.display = 'none';
+
+            singleInputFields.innerHTML = '';
+            model_features.forEach(feature => {
+                const label = document.createElement('label');
+                label.textContent = `Enter value for ${feature}:`;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = feature;
+                input.required = true;
+
+                singleInputFields.appendChild(label);
+                singleInputFields.appendChild(input);
+            });
+        });
+
+        uploadOption.addEventListener('click', () => {
+            uploadForm.style.display = 'block';
+            singleInputSection.style.display = 'none';
+        });
+
+        singleInputForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(singleInputForm);
+            const inputData = {}; 
+            model_features.forEach(feature => {
+                inputData[feature] = formData.get(feature);
+            });
+
+            try {
+                const response = await fetch('/single-predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(inputData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    predictionList.innerHTML = '';
+                    const li = document.createElement('li');
+                    li.textContent = `Cluster: ${data.prediction}`;
+                    predictionList.appendChild(li);
+                    resultsDiv.style.display = 'block'; 
+
+                } else {
+                    console.error('Prediction error:', data.error);
+                    alert(data.error); 
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('An error occurred during prediction.');
+            }
+        });
+    </script>
+
+</body>
+</html>
