@@ -122,6 +122,13 @@ Ensure your data file contains a `CustomerID` column along with the following fe
 Make sure the uploaded CSV or Excel file includes all these columns for accurate customer segmentation.
 
 
+## Live Demo
+
+You can view the live version of this customer segmentation project here: [clustermap.up.railway.app](https://clustermap.up.railway.app)
+
+This demo allows you to upload your dataset, map the features, and visualize customer clusters along with detailed statistics.
+
+
 ## License
 
 This project is licensed under the MIT License.
