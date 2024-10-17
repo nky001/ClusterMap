@@ -1,0 +1,8 @@
+Flask
+scikit-learn
+joblib
+flask_socketio
+pandas
+numpy
+eventlet
+matplotlib
