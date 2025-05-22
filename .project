@@ -1,0 +1,11 @@
+{
+  "title": "Customer Segmentation",
+  "description": "Customer segmentation tool that analyzes and visualizes customer data, offering insights into clusters with statistical summaries and charts",
+  "image": "https://www.qservicesit.com/wp-content/uploads/2024/06/What-is-customer-segmentation-in-banking--scaled.webp",
+  "position": 1,
+  "playground": "https://clustermap.onrender.com/",
+  "featured": true,
+  "techStack": ["Python", "NumPy", "Pandas", "Scikit-learn", "Matplotlib", "Seaborn"],
+  "status": "active",
+  "showReadme":true
+}
